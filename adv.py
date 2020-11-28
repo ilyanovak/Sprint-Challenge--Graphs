@@ -1,6 +1,7 @@
 from room import Room
 from player import Player
 from world import World
+from collections import deque
 
 import random
 from ast import literal_eval
@@ -27,11 +28,72 @@ player = Player(world.starting_room)
 
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
+
 traversal_path = []
+traversal_graph = {}
 
+def traverse_helper(prevDirection, prevRoom):
 
+    if player.current_room.id not in traversal_graph:
+        traversal_graph[player.current_room.id] = dict.fromkeys(
+            player.current_room.get_exits(), "?")
 
-# TRAVERSAL TEST - DO NOT MODIFY
+    if prevDirection is not None:
+        traversal_graph[prevRoom.id][prevDirection] = player.current_room.id
+    if prevDirection == "n":
+        traversal_graph[player.current_room.id]['s'] = prevRoom.id
+    elif prevDirection == "s":
+        traversal_graph[player.current_room.id]['n'] = prevRoom.id
+    elif prevDirection == "e":
+        traversal_graph[player.current_room.id]['w'] = prevRoom.id
+    elif prevDirection == "w":
+        traversal_graph[player.current_room.id]['e'] = prevRoom.id
+
+    emptyDirections = [
+        prevDirection for prevDirection in traversal_graph[player.current_room.id]
+        if traversal_graph[player.current_room.id][prevDirection] == '?']
+
+    if emptyDirections == []:
+        if prevDirection == "n":
+            player.travel('s')
+            traversal_path.append('s')
+        elif prevDirection == "s":
+            player.travel('n')
+            traversal_path.append('n')
+        elif prevDirection == "e":
+            player.travel('w')
+            traversal_path.append('w')
+        elif prevDirection == "w":
+            player.travel('e')
+            traversal_path.append('e')
+        return
+
+    for direction in emptyDirections:
+        prevRoom = player.current_room
+        player.travel(direction)
+        traversal_path.append(direction)
+
+        traverse_helper(direction, prevRoom)
+
+    if prevDirection == "n":
+        player.travel('s')
+        traversal_path.append('s')
+    elif prevDirection == "s":
+        player.travel('n')
+        traversal_path.append('n')
+    elif prevDirection == "e":
+        player.travel('w')
+        traversal_path.append('w')
+    elif prevDirection == "w":
+        player.travel('e')
+        traversal_path.append('e')
+
+traverse_helper(None, None)
+
+# print(traversal_path)
+# print(traversal_graph)
+
+# # TRAVERSAL TEST - DO NOT MODIFY
 visited_rooms = set()
 player.current_room = world.starting_room
 visited_rooms.add(player.current_room)
@@ -48,15 +110,15 @@ else:
 
 
 
-#######
-# UNCOMMENT TO WALK AROUND
-#######
-player.current_room.print_room_description(player)
-while True:
-    cmds = input("-> ").lower().split(" ")
-    if cmds[0] in ["n", "s", "e", "w"]:
-        player.travel(cmds[0], True)
-    elif cmds[0] == "q":
-        break
-    else:
-        print("I did not understand that command.")
+# #######
+# # UNCOMMENT TO WALK AROUND
+# #######
+# player.current_room.print_room_description(player)
+# while True:
+#     cmds = input("-> ").lower().split(" ")
+#     if cmds[0] in ["n", "s", "e", "w"]:
+#         player.travel(cmds[0], True)
+#     elif cmds[0] == "q":
+#         break
+#     else:
+#         print("I did not understand that command.")
